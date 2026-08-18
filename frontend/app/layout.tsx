@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shubh Real Estates | Auspicious Luxury Living & Advisory",
-  description: "Curators of prime real estate assets and bespoke advisory powered by Gemini AI.",
+  title: "Northstar Homes | Aarav, Your Sales Consultant",
+  description: "Chat with Aarav about Northstar One in Sector 79, Gurugram.",
 };
 
 export default function RootLayout({
