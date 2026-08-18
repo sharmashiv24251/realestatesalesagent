@@ -1,0 +1,75 @@
+{
+  "_principle": "Off-topic questions are classified by type, never counted by volume -- counting inverts the score on the best leads. Volunteered facts outrank the same fact pulled out by a direct question, because serious buyers leak their constraints while solving a real problem; tyre-kickers answer endlessly and reveal nothing.",
+
+  "off_topic_classes": {
+    "adjacent": {
+      "signal": "+",
+      "weight": 2,
+      "keywords": [
+        "safe", "safety", "school", "schools", "commute", "resale",
+        "who else has this builder delivered", "track record", "water supply",
+        "which floor", "traffic", "neighbourhood", "neighborhood", "cyber city"
+      ],
+      "note": "Off-topic by any classifier, but this is buyer-brain -- a family evaluating a home asks exactly these. Rewarded, not penalised.",
+      "handling": "Answer if a tool has it. Escalate if not. Never invent."
+    },
+    "personal_financial": {
+      "signal": "-",
+      "weight": -2,
+      "keywords": [
+        "switch careers", "how do people afford", "is now a good time to buy",
+        "can't afford", "cant afford", "afford this"
+      ],
+      "note": "Aspiration, not a prank. Low near-term intent, real long-term. Route to nurture, never discard.",
+      "handling": "One line of human acknowledgment, decline the advice, redirect."
+    },
+    "testing_the_bot": {
+      "signal": "--",
+      "weight": -5,
+      "keywords": [
+        "javascript", "typescript", "difference between js", "what model are you",
+        "ignore your instructions", "ignore previous instructions", "book me for yesterday",
+        "solve this math", "your competitor", "are you an ai", "are you human"
+      ],
+      "note": "Probing the system, not the property. Strongest negative signal available.",
+      "handling": "Brief decline, no lecture, redirect. Never get defensive."
+    }
+  },
+
+  "objection_taxonomy": {
+    "price": ["expensive", "too much", "costly", "mehnga", "mehenga", "high price"],
+    "location": ["far", "location is far", "too far", "distance", "dur hai"],
+    "family_consult": ["discuss with family", "ask my wife", "ask my husband", "talk to family"],
+    "just_looking": ["just looking", "just browsing", "no rush", "abhi bas dekh raha"],
+    "trust_delay": ["trust builders", "possession delay", "delayed possession", "builder delay"],
+    "competitor": ["competitor", "other builder", "another project is offering"]
+  },
+
+  "disclosure_signals": {
+    "volunteered_constraint": { "weight": 4, "eg": "my office is in Cyber City" },
+    "volunteered_timeline": { "weight": 4, "eg": "we want to move before April" },
+    "volunteered_financing": { "weight": 5, "eg": "my loan is pre-approved" },
+    "volunteered_family": { "weight": 3, "eg": "two kids, need a third room" },
+    "volunteered_current_home": { "weight": 3, "eg": "renting in Sector 56 right now" },
+    "gave_name": { "weight": 2 },
+    "gave_phone": { "weight": 6 }
+  },
+
+  "behavioural_signals": {
+    "asked_about_payment_process": 5,
+    "asked_about_possession": 4,
+    "asked_to_compare_configs": 3,
+    "requested_site_visit_unprompted": 8,
+    "accepted_proposed_slot": 6,
+    "asked_for_human_consultant": 5,
+    "session_turns_over_10": 2,
+    "budget_within_project_range": 4,
+    "budget_far_below_range": -3,
+    "declined_visit_twice": -4,
+    "refused_all_qualification": -5
+  },
+
+  "thresholds": { "hot": 20, "warm": 8, "cold": 0 },
+
+  "_output_contract": "Never emit a bare score. Always pair interest_level with interest_evidence[] -- the human-readable reasons that produced it."
+}

@@ -1,0 +1,30 @@
+{
+  "business_hours": { "start": "10:00", "end": "19:00", "timezone": "Asia/Kolkata" },
+  "open_days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+  "slot_duration_minutes": 60,
+  "last_slot_start": "18:00",
+  "booking_window_days": 30,
+  "min_advance_notice_hours": 2,
+  "max_slots_offered_at_once": 2,
+  "site_address": "Northstar One Site Office, Sector 79, Gurugram, Haryana 122004",
+  "experience_center_note": "Sales lounge on site. Ask visitors to carry a photo ID.",
+
+  "existing_reservations": [
+    { "days_from_today": 1, "hour": 11 },
+    { "days_from_today": 1, "hour": 17 },
+    { "days_from_today": 2, "hour": 10 },
+    { "days_from_today": 2, "hour": 16 },
+    { "days_from_today": 3, "hour": 17 },
+    { "days_from_today": 5, "hour": 11 },
+    { "days_from_today": 5, "hour": 12 },
+    { "days_from_today": 5, "hour": 13 },
+    { "days_from_today": 5, "hour": 14 },
+    { "days_from_today": 5, "hour": 15 },
+    { "days_from_today": 5, "hour": 16 },
+    { "days_from_today": 5, "hour": 17 },
+    { "days_from_today": 5, "hour": 18 }
+  ],
+
+  "on_hold_slot_ids": ["SLOT-ON-HOLD"],
+  "restricted_booking_name_patterns": ["__failtest__"]
+}
