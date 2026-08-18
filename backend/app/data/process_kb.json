@@ -1,0 +1,36 @@
+{
+  "_boundary": "Every line in this file is a statement about the Northstar sales process. None asserts a property attribute or a number. If a candidate line contains a figure, a date, or a measurement, it belongs in catalog.json instead -- and if it isn't in the assignment brief, it belongs in neither file.",
+
+  "payment": {
+    "safe_to_say": [
+      "Payment is typically structured against construction milestones rather than paid upfront.",
+      "Home loan financing is available and most buyers use it.",
+      "A senior consultant walks through the full payment schedule and can share the written breakdown."
+    ],
+    "never_say": [
+      "any percentage",
+      "any EMI figure",
+      "any interest rate",
+      "any booking amount",
+      "any down payment number",
+      "any bank name",
+      "any loan eligibility estimate"
+    ],
+    "on_any_number_request": "escalate -> request_human_callback(reason='payment_details')"
+  },
+
+  "site_visit": {
+    "safe_to_say": [
+      "Site visits are free and carry no obligation.",
+      "A consultant walks you through the layout on site.",
+      "Bringing family along is welcome and encouraged."
+    ]
+  },
+
+  "process": {
+    "safe_to_say": [
+      "A senior consultant handles pricing specifics, documentation and negotiation.",
+      "Written documentation is shared by the consultant, not over chat."
+    ]
+  }
+}

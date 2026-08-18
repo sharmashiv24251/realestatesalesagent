@@ -1,0 +1,63 @@
+{
+  "projects": [
+    {
+      "project_id": "northstar-one",
+      "name": "Northstar One",
+      "developer": "Northstar Homes",
+      "location": "Sector 79, Gurugram",
+      "city": "Gurugram",
+      "state": "Haryana",
+
+      "configurations": [
+        {
+          "type": "2 BHK",
+          "starting_price_inr": 13500000,
+          "starting_price_display": "₹1.35 crore onwards",
+          "carpet_area_sqft": null,
+          "built_up_area_sqft": null,
+          "floor_plan_available": null,
+          "units_available": null
+        },
+        {
+          "type": "3 BHK",
+          "starting_price_inr": 17500000,
+          "starting_price_display": "₹1.75 crore onwards",
+          "carpet_area_sqft": null,
+          "built_up_area_sqft": null,
+          "floor_plan_available": null,
+          "units_available": null
+        }
+      ],
+
+      "status": "active",
+      "possession_date": null,
+      "construction_status": null,
+      "amenities": null,
+      "approvals": null,
+      "rera_number": null,
+      "connectivity": null,
+      "nearby_landmarks": null,
+      "payment_plan_details": null,
+      "maintenance_charges": null,
+      "parking_details": null,
+      "total_units": null,
+      "total_towers": null,
+      "launch_date": null,
+      "price_per_sqft": null,
+      "offers": null,
+      "discounts": null
+    }
+  ],
+
+  "_provenance": {
+    "pdf_sourced": [
+      "name",
+      "developer",
+      "location",
+      "configurations[].type",
+      "configurations[].starting_price_inr"
+    ],
+    "deliberately_null": "Every other field. The brief never supplied them. These nulls are load-bearing: they are what the anti-hallucination behaviour of the agent is demonstrated against, not gaps to be filled in before a demo.",
+    "note": "'onwards' is preserved from the brief. These are floor prices for the configuration, not the price of any specific unit. The agent must never present a starting price as the confirmed price of a specific flat."
+  }
+}
