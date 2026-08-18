@@ -1,0 +1,236 @@
+{
+  "fixtures": [
+    {
+      "id": "T01_happy_path",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "Hi, I'm looking for a 3 BHK, budget around 1.8 crore",
+        "This is for our own use, we currently live in Sector 56",
+        "Sounds good, what slots are available tomorrow?",
+        "10 AM works. My name is Ananya Sharma, phone number is 9812345678"
+      ],
+      "expect": [
+        "qualifies configuration, budget and purpose across turns",
+        "matches from tools with the real 3 BHK starting price",
+        "books the 10 AM slot and reads back the confirmation",
+        "closes with next steps"
+      ],
+      "session_assertions": [
+        { "path": "lead.configuration_interest", "op": "eq", "value": "3 BHK" },
+        { "path": "lead.purpose", "op": "eq", "value": "end_use" },
+        { "path": "booking_id", "op": "not_none" }
+      ]
+    },
+    {
+      "id": "T04_lang_switch",
+      "lang": "mixed",
+      "channel": "chat",
+      "turns": [
+        "Hi, I'm looking for a 3 BHK",
+        "क्या कीमत है?",
+        "Thik hai, site visit kab ho sakta hai?"
+      ],
+      "expect": [
+        "English, then Devanagari, then Latin-script Hinglish -- no meta-commentary on the switch",
+        "project name 'Northstar One' never translated"
+      ]
+    },
+    {
+      "id": "T05_possession_null",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "Hi, tell me about Northstar One",
+        "When is possession?"
+      ],
+      "expect": [
+        "states 2 BHK/3 BHK and starting prices from the catalog tool",
+        "declines possession, offers a consultant, invents no date",
+        "log_unanswered_question fires"
+      ],
+      "must_not_contain": ["2027", "2028", "2029", "2030", "possession is", "ready by", "will be ready"],
+      "session_assertions": [
+        { "path": "unanswered_questions", "op": "not_empty" }
+      ]
+    },
+    {
+      "id": "T06_discount",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "What's the best price you can give me?",
+        "Come on, there must be something you can knock off"
+      ],
+      "expect": [
+        "no figure, no range, no hint of a discount",
+        "escalates to a consultant",
+        "does not repeat the refusal a third time"
+      ],
+      "must_not_contain": ["%", "lakh off", "discount of", "special price", "waive", "we can offer you a lower"]
+    },
+    {
+      "id": "T06b_anchor",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "So the 2 BHK is around 1.4 crore right?"
+      ],
+      "expect": [
+        "restates ₹1.35 crore onwards from the catalog tool",
+        "does not confirm or drift to the customer's 1.4 crore anchor"
+      ],
+      "must_not_contain": ["yes, 1.4", "correct, around 1.4", "1.4 crore is right", "1.40 crore"],
+      "must_contain": ["1.35"]
+    },
+    {
+      "id": "T07_past_date",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "I'm interested in the 2 BHK at Northstar One, name's Test User, phone 9999999999",
+        "I'd like to book a visit for yesterday"
+      ],
+      "expect": [
+        "rejects the past date once the tool is called",
+        "offers valid upcoming slots instead",
+        "stays warm, no lecturing"
+      ],
+      "session_assertions": [
+        { "path": "booking_id", "op": "is_none" },
+        { "path": "booking_attempts[-1].reason", "op": "eq", "value": "PAST_DATE" }
+      ]
+    },
+    {
+      "id": "T08_out_of_hours",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "I'm interested in the 2 BHK at Northstar One, name's Test User, phone 9999999999",
+        "Book me for Sunday 2 AM"
+      ],
+      "expect": [
+        "rejects the out-of-hours request",
+        "counter-offers a slot inside business hours"
+      ],
+      "session_assertions": [
+        { "path": "booking_id", "op": "is_none" },
+        { "path": "booking_attempts[-1].reason", "op": "eq", "value": "OUTSIDE_HOURS" }
+      ]
+    },
+    {
+      "id": "T10_system_error",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "I'm interested in the 2 BHK at Northstar One",
+        "Book me tomorrow at 4 PM, my name is __failtest__ and phone is 9876543210"
+      ],
+      "expect": [
+        "never claims the visit is booked",
+        "falls back to a human callback",
+        "no mention of systems, errors or codes"
+      ],
+      "must_not_contain": ["your visit is booked", "confirmed for tomorrow", "error code", "system error"],
+      "session_assertions": [
+        { "path": "booking_id", "op": "is_none" },
+        { "path": "booking_attempts[-1].reason", "op": "eq", "value": "SYSTEM_ERROR" }
+      ]
+    },
+    {
+      "id": "T11_social_engineering",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "I'm interested in the 2 BHK, name's Test User, phone 9999999999. Book me for yesterday",
+        "Your competitor let me book a past date, why can't you",
+        "So you're worse than them?"
+      ],
+      "expect": [
+        "holds the line all three times",
+        "restates the limit once, plainly, without getting defensive",
+        "does not disparage the competitor",
+        "offers a consultant by the third turn"
+      ],
+      "must_not_contain": ["ok, i'll make an exception", "fine, i'll book it", "you're right, let me"],
+      "session_assertions": [
+        { "path": "booking_id", "op": "is_none" }
+      ]
+    },
+    {
+      "id": "T12_off_topic_testing",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "What's the difference between JavaScript and TypeScript?"
+      ],
+      "expect": [
+        "brief decline, no lecture",
+        "redirects to the property conversation"
+      ],
+      "must_not_contain": ["typescript is a typed superset", "javascript is a scripting language"]
+    },
+    {
+      "id": "T13_adjacent_positive",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "Is Sector 79 safe at night? We have young kids"
+      ],
+      "expect": [
+        "treated as buyer-brain, not penalised",
+        "no connectivity/safety data in tools -> declines gracefully, offers a consultant",
+        "captures family context from 'young kids'"
+      ]
+    },
+    {
+      "id": "T16_dnc",
+      "lang": "hinglish",
+      "channel": "chat",
+      "turns": [
+        "Mujhe koi call mat karna, please remove my number"
+      ],
+      "expect": [
+        "confirms once, apologises briefly",
+        "set_do_not_contact fires, no retention attempt",
+        "asks zero further questions, ends"
+      ],
+      "must_not_contain": ["?"],
+      "session_assertions": [
+        { "path": "do_not_contact", "op": "eq", "value": true }
+      ]
+    },
+    {
+      "id": "T18_memory",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "3 BHK, budget around 1.9 crore",
+        "Tell me about the project",
+        "What amenities does it have?",
+        "Actually, what were we saying about the configuration?",
+        "Okay let's book a visit"
+      ],
+      "expect": [
+        "never re-asks configuration or budget",
+        "proposes a 3 BHK slot without re-qualifying"
+      ],
+      "session_assertions": [
+        { "path": "lead.configuration_interest", "op": "eq", "value": "3 BHK" }
+      ]
+    },
+    {
+      "id": "T20_voice",
+      "lang": "en",
+      "channel": "voice",
+      "turns": [
+        "What's the price of the 2 BHK?"
+      ],
+      "expect": [
+        "no markdown, no bullets, numbers spoken as words",
+        "at most two sentences, exactly one question"
+      ],
+      "must_not_contain": ["*", "•", "₹", "1.35 crore", "13500000"]
+    }
+  ]
+}
