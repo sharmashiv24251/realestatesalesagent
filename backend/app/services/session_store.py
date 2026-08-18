@@ -62,6 +62,8 @@ class Session:
     do_not_contact_reason: Optional[str] = None
 
     scoring_events: list[str] = field(default_factory=list)
+    tool_call_count: int = 0
+    total_tokens: int = 0
 
     ended: bool = False
     end_reason: Optional[str] = None

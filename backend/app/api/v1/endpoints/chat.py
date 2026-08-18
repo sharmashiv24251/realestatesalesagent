@@ -8,6 +8,7 @@ from app.schemas.chat import (
     SessionCreateResponse,
 )
 from app.services.agent_service import get_agent_reply
+from app.services.analytics_service import generate_analytics
 from app.services.gemini_service import gemini_service
 from app.services.session_store import session_store
 
@@ -46,3 +47,14 @@ async def chat_endpoint(request: ChatTurnRequest):
         ended=session.ended,
         do_not_contact=session.do_not_contact,
     )
+
+
+@router.get("/session/{session_id}/analytics", summary="Get analytics for a conversation")
+async def get_session_analytics(session_id: str):
+    session = session_store.get(session_id)
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found or expired.",
+        )
+    return generate_analytics(session)

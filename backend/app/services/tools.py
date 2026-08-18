@@ -10,6 +10,7 @@ booking rules are enforced here in Python against the current time in IST,
 not left to the model to reason about.
 """
 
+import functools
 import json
 import os
 import random
@@ -42,6 +43,17 @@ def _business_hours_display() -> str:
     return f"{bh['start']}-{bh['end']} {bh['timezone']}"
 
 
+def _tracked(fn):
+    """Counts each tool invocation against the session, for ops analytics."""
+
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        self.session.tool_call_count += 1
+        return fn(self, *args, **kwargs)
+
+    return wrapper
+
+
 class ToolBox:
     def __init__(self, session: Session):
         self.session = session
@@ -50,6 +62,7 @@ class ToolBox:
     # Catalog & booking
     # ------------------------------------------------------------------
 
+    @_tracked
     def search_projects(
         self,
         configuration: Optional[str] = None,
@@ -97,6 +110,7 @@ class ToolBox:
             )
         return results
 
+    @_tracked
     def get_project_details(self, project_id: str) -> dict:
         """Get full details for one project. Fields the catalog has no data for come back null --
         that means the information genuinely isn't available, not that it should be guessed.
@@ -110,6 +124,7 @@ class ToolBox:
             return {"error": "not_found", "project_id": project_id}
         return project
 
+    @_tracked
     def check_slot_availability(
         self, project_id: str, date: Optional[str] = None
     ) -> dict:
@@ -129,6 +144,7 @@ class ToolBox:
             "available_slots": available[:20],
         }
 
+    @_tracked
     def book_site_visit(
         self,
         project_id: str,
@@ -218,6 +234,7 @@ class ToolBox:
     # Lead capture & escalation
     # ------------------------------------------------------------------
 
+    @_tracked
     def save_lead_profile(
         self,
         configuration_interest: Optional[str] = None,
@@ -293,6 +310,7 @@ class ToolBox:
 
         return {"ok": True, "lead": session.lead}
 
+    @_tracked
     def log_unanswered_question(self, question_text: str) -> dict:
         """Record a question you could not answer from your tools, so it can be followed up
         on and used to spot gaps in what Northstar makes available to the agent.
@@ -304,6 +322,7 @@ class ToolBox:
         self.session.unanswered_questions.append(question_text)
         return {"ok": True}
 
+    @_tracked
     def request_human_callback(
         self, reason: str, preferred_time: Optional[str] = None
     ) -> dict:
@@ -323,6 +342,7 @@ class ToolBox:
         session.record_scoring_event("asked_for_human_consultant")
         return {"ok": True}
 
+    @_tracked
     def set_do_not_contact(self, reason: Optional[str] = None) -> dict:
         """Record that the customer wants no further contact. Call this once, then stop
         asking anything further.
@@ -336,6 +356,7 @@ class ToolBox:
         session.do_not_contact_reason = reason
         return {"ok": True}
 
+    @_tracked
     def end_conversation(self, reason: str) -> dict:
         """Close out the conversation. Call this once, at the very end, after you've read
         back anything confirmed and said goodbye.

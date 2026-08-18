@@ -56,5 +56,8 @@ def get_agent_reply(session: Session, user_message: str) -> str:
     )
     reply_text = response.text or ""
 
+    if response.usage_metadata and response.usage_metadata.total_token_count:
+        session.total_tokens += response.usage_metadata.total_token_count
+
     session.history.append({"role": "model", "content": reply_text})
     return reply_text
