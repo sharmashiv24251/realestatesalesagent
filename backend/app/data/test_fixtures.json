@@ -16,6 +16,13 @@
         "books the 10 AM slot and reads back the confirmation",
         "closes with next steps"
       ],
+      "must_not_contain": [
+        "in the morning",
+        "in the afternoon",
+        "nine eight one two",
+        "one crore eighty lakh"
+      ],
+      "must_contain": ["10 AM"],
       "session_assertions": [
         { "path": "lead.configuration_interest", "op": "eq", "value": "3 BHK" },
         { "path": "lead.purpose", "op": "eq", "value": "end_use" },
@@ -29,11 +36,38 @@
       "turns": [
         "Hi, I'm looking for a 3 BHK",
         "क्या कीमत है?",
-        "Thik hai, site visit kab ho sakta hai?"
+        "Thik hai, site visit kab ho sakta hai?",
+        "Actually can you just tell me in English what's included in the price?"
       ],
       "expect": [
         "English, then Devanagari, then Latin-script Hinglish -- no meta-commentary on the switch",
-        "project name 'Northstar One' never translated"
+        "project name 'Northstar One' never translated",
+        "final reply switches back to plain English immediately -- does not keep replying in Hinglish just because the last few turns were"
+      ]
+    },
+    {
+      "id": "T21_out_of_area",
+      "lang": "en",
+      "channel": "chat",
+      "turns": [
+        "Do you have any projects in Mumbai, or should I just look at Gurugram?"
+      ],
+      "expect": [
+        "states plainly, from what it already knows, that Northstar only has Northstar One in Sector 79 Gurugram",
+        "does not escalate or offer a consultant for something it already knows the answer to",
+        "keeps the conversation moving with a real discovery question, not just a yes/no callback offer"
+      ],
+      "must_contain": ["Gurugram"],
+      "must_not_contain": [
+        "i don't have that detail",
+        "consultant confirm",
+        "senior consultant will",
+        "let me have our team",
+        "have someone call you"
+      ],
+      "session_assertions": [
+        { "path": "escalation_requested", "op": "eq", "value": false },
+        { "path": "unanswered_questions", "op": "eq", "value": [] }
       ]
     },
     {
