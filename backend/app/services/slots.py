@@ -50,7 +50,6 @@ def generate_available_slots(date_filter: Optional[str] = None) -> list[dict]:
     window_days = cfg["booking_window_days"]
     min_notice = timedelta(hours=cfg["min_advance_notice_hours"])
 
-    reserved = _reserved_datetimes()
     now = now_ist()
     earliest = now + min_notice
 
@@ -67,7 +66,7 @@ def generate_available_slots(date_filter: Optional[str] = None) -> list[dict]:
             dt = datetime.combine(day, time(hour=hour), tzinfo=IST)
             if dt < earliest:
                 continue
-            if dt in reserved:
+            if is_reserved(dt):
                 continue
             slots.append({"slot_id": slot_id_for(dt), "datetime_ist": dt.isoformat()})
 
@@ -93,8 +92,15 @@ def is_within_business_hours(dt: datetime) -> bool:
     return start_hour <= dt.hour <= last_slot_hour
 
 
+_runtime_reserved: set = set()
+
+
 def is_reserved(dt: datetime) -> bool:
-    return dt in _reserved_datetimes()
+    return dt in _reserved_datetimes() or dt in _runtime_reserved
+
+
+def mark_reserved(dt: datetime) -> None:
+    _runtime_reserved.add(dt)
 
 
 def is_on_hold(slot_id: str) -> bool:
