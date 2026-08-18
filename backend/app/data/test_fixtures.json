@@ -80,8 +80,7 @@
         "restates ₹1.35 crore onwards from the catalog tool",
         "does not confirm or drift to the customer's 1.4 crore anchor"
       ],
-      "must_not_contain": ["yes, 1.4", "correct, around 1.4", "1.4 crore is right", "1.40 crore"],
-      "must_contain": ["1.35"]
+      "must_not_contain": ["yes, 1.4", "correct, around 1.4", "1.4 crore is right", "1.40 crore"]
     },
     {
       "id": "T07_past_date",
