@@ -15,7 +15,7 @@ import os
 import random
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from app.services import slots
@@ -213,3 +213,139 @@ class ToolBox:
             "datetime_ist": target_dt.isoformat(),
             "address": slots.BOOKING_CONFIG["site_address"],
         }
+
+    # ------------------------------------------------------------------
+    # Lead capture & escalation
+    # ------------------------------------------------------------------
+
+    def save_lead_profile(
+        self,
+        configuration_interest: Optional[str] = None,
+        budget_min_inr: Optional[int] = None,
+        budget_max_inr: Optional[int] = None,
+        budget_stated_raw: Optional[str] = None,
+        purpose: Optional[str] = None,
+        purchase_timeline: Optional[str] = None,
+        financing: Optional[str] = None,
+        loan_preapproved: Optional[bool] = None,
+        current_locality: Optional[str] = None,
+        possession_preference: Optional[str] = None,
+        family_size: Optional[int] = None,
+        first_time_buyer: Optional[bool] = None,
+        customer_name: Optional[str] = None,
+        customer_phone: Optional[str] = None,
+    ) -> dict:
+        """Save or update whatever the customer has shared so far. Call this as each field
+        lands in the conversation, not only at the end -- pass only the fields you have new
+        information for; anything you omit is left as it already was.
+
+        Args:
+            configuration_interest: Which configuration they want, e.g. "2 BHK" or "3 BHK".
+            budget_min_inr: Lower end of their stated budget, in INR.
+            budget_max_inr: Upper end of their stated budget, in INR.
+            budget_stated_raw: Their budget in their own words, e.g. "around 1.5 to 1.8 crore".
+            purpose: "end_use" or "investment".
+            purchase_timeline: "immediate", "3_months", "6_months", or "exploring".
+            financing: "home_loan" or "self_funded".
+            loan_preapproved: Whether their home loan is already pre-approved.
+            current_locality: Where they currently live or work.
+            possession_preference: "ready_to_move", "under_construction", or "flexible".
+            family_size: Number of people in the household.
+            first_time_buyer: Whether this is their first property purchase.
+            customer_name: The customer's name.
+            customer_phone: The customer's phone number.
+        """
+        _network_delay()
+        session = self.session
+        updates = {
+            "configuration_interest": configuration_interest,
+            "budget_min_inr": budget_min_inr,
+            "budget_max_inr": budget_max_inr,
+            "budget_stated_raw": budget_stated_raw,
+            "purpose": purpose,
+            "purchase_timeline": purchase_timeline,
+            "financing": financing,
+            "loan_preapproved": loan_preapproved,
+            "current_locality": current_locality,
+            "possession_preference": possession_preference,
+            "family_size": family_size,
+            "first_time_buyer": first_time_buyer,
+            "customer_name": customer_name,
+            "customer_phone": customer_phone,
+        }
+
+        disclosure_events = {
+            "current_locality": "volunteered_constraint",
+            "purchase_timeline": "volunteered_timeline",
+            "financing": "volunteered_financing",
+            "family_size": "volunteered_family",
+            "customer_name": "gave_name",
+            "customer_phone": "gave_phone",
+        }
+
+        for field, value in updates.items():
+            if value is None:
+                continue
+            is_new = session.lead.get(field) is None
+            session.lead[field] = value
+            if is_new and field in disclosure_events:
+                session.record_scoring_event(disclosure_events[field])
+
+        return {"ok": True, "lead": session.lead}
+
+    def log_unanswered_question(self, question_text: str) -> dict:
+        """Record a question you could not answer from your tools, so it can be followed up
+        on and used to spot gaps in what Northstar makes available to the agent.
+
+        Args:
+            question_text: The customer's question, as close to their own words as possible.
+        """
+        _network_delay()
+        self.session.unanswered_questions.append(question_text)
+        return {"ok": True}
+
+    def request_human_callback(
+        self, reason: str, preferred_time: Optional[str] = None
+    ) -> dict:
+        """Escalate to a human consultant -- for discounts, negotiation, documentation/legal
+        questions, an upset customer, or anything asked twice that you couldn't answer.
+
+        Args:
+            reason: Why this needs a human, e.g. "payment_details", "discount_request".
+            preferred_time: When the customer would like to be called back, if they said.
+        """
+        _network_delay()
+        session = self.session
+        session.escalation_requested = True
+        session.escalation_reason = reason
+        if preferred_time:
+            session.preferred_callback_time = preferred_time
+        session.record_scoring_event("asked_for_human_consultant")
+        return {"ok": True}
+
+    def set_do_not_contact(self, reason: Optional[str] = None) -> dict:
+        """Record that the customer wants no further contact. Call this once, then stop
+        asking anything further.
+
+        Args:
+            reason: Why they opted out, if they said.
+        """
+        _network_delay()
+        session = self.session
+        session.do_not_contact = True
+        session.do_not_contact_reason = reason
+        return {"ok": True}
+
+    def end_conversation(self, reason: str) -> dict:
+        """Close out the conversation. Call this once, at the very end, after you've read
+        back anything confirmed and said goodbye.
+
+        Args:
+            reason: "user_goodbye", "agent_close", "opt_out", or "abandoned".
+        """
+        _network_delay()
+        session = self.session
+        session.ended = True
+        session.end_reason = reason
+        session.ended_at = datetime.now(timezone.utc)
+        return {"ok": True}
