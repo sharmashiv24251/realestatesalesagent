@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     ENVIRONMENT: str = "development"
+
+    # Conversation sessions
+    SESSION_TTL_SECONDS: int = 3600
     
     # CORS
     CORS_ORIGINS: Union[List[str], str] = [
