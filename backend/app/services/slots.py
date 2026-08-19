@@ -95,7 +95,21 @@ def is_within_business_hours(dt: datetime) -> bool:
 _runtime_reserved: set = set()
 
 
+def _prune_runtime_reserved() -> None:
+    """Drop reservations for datetimes already in the past.
+
+    Bookings never get un-reserved, and the server process runs indefinitely, so
+    without this the set grows forever. Slots are only ever generated forward from
+    now() anyway, so a stale entry can't affect availability -- this just keeps the
+    in-memory set from growing without bound over the process lifetime.
+    """
+    now = now_ist()
+    stale = {dt for dt in _runtime_reserved if dt < now}
+    _runtime_reserved.difference_update(stale)
+
+
 def is_reserved(dt: datetime) -> bool:
+    _prune_runtime_reserved()
     return dt in _reserved_datetimes() or dt in _runtime_reserved
 
 

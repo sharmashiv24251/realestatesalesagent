@@ -1,6 +1,6 @@
 # Northstar Agent -- Test Results
 
-12/12 automated fixtures passed (2 more are manual-review only).
+12/13 automated fixtures passed (2 more are manual-review only).
 
 ## T01_happy_path -- PASS
 _Language: en · Channel: chat_
@@ -13,26 +13,31 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** Hi, I'm looking for a 3 BHK, budget around 1.8 crore
-  **Actual:** We have Northstar One in Sector 79, Gurugram, where 3 BHK units start at one crore seventy-five lakh. 
+  **Actual:** We have 3 BHKs at Northstar One in Sector 79, Gurugram, starting from 1.75 Cr. 
 
-Are you looking for your own use, or as an investment?
+Are you looking for this for your own use or as an investment?
 - **Input:** This is for our own use, we currently live in Sector 56
-  **Actual:** Sector 56 to Sector 79 is a smooth drive, especially with the connectivity around the Southern Peripheral Road. 
+  **Actual:** Sector 79 is a straightforward commute from Sector 56 via the Southern Peripheral Road. 
 
-When are you hoping to move into your new home?
+Would you like to schedule a site visit this weekend to see the 3 BHK layout?
 - **Input:** Sounds good, what slots are available tomorrow?
-  **Actual:** Tomorrow we have slots open at ten in the morning, twelve noon, or three in the afternoon at Northstar One. 
+  **Actual:** Tomorrow we have slots at 10 AM, 12 PM, and 3 PM. 
 
-Would one of those work for you?
+Which one works for you?
 - **Input:** 10 AM works. My name is Ananya Sharma, phone number is 9812345678
-  **Actual:** Your site visit is confirmed for tomorrow, August nineteenth, at ten in the morning at Northstar One in Sector 79, Gurugram. 
+  **Actual:** Your site visit is confirmed for tomorrow, 20 Aug at 10 AM at Northstar One, Sector 79, Gurugram. 
 
-Thank you, Ananya, and we look forward to welcoming you.
+Is there anything else you would like to know before you visit?
 
 **Automated checks:**
+- [x] must not contain "in the morning"
+- [x] must not contain "in the afternoon"
+- [x] must not contain "nine eight one two"
+- [x] must not contain "one crore eighty lakh"
+- [x] must contain "10 AM"
 - [x] lead.configuration_interest == '3 BHK' (got '3 BHK')
 - [x] lead.purpose == 'end_use' (got 'end_use')
-- [x] booking_id is not None (got 'NB-142477BD')
+- [x] booking_id is not None (got 'NB-41E4D531')
 
 ## T04_lang_switch -- MANUAL REVIEW
 _Language: mixed · Channel: chat_
@@ -40,20 +45,45 @@ _Language: mixed · Channel: chat_
 **Expected behaviour:**
 - English, then Devanagari, then Latin-script Hinglish -- no meta-commentary on the switch
 - project name 'Northstar One' never translated
+- final reply switches back to plain English immediately -- does not keep replying in Hinglish just because the last few turns were
 
 **Conversation:**
 - **Input:** Hi, I'm looking for a 3 BHK
-  **Actual:** Hello! I'm Aarav from Northstar Homes. For 3 BHKs, we currently have Northstar One in Sector 79, Gurugram, with prices starting from ₹1.75 crore. 
+  **Actual:** We have 3 BHK apartments at Northstar One in Sector 79, Gurugram, starting at 1.75 Cr. 
 
-Are you looking for yourself or as an investment?
+Are you looking to move in yourself, or is this for investment?
 - **Input:** क्या कीमत है?
-  **Actual:** Northstar One (Sector 79, Gurugram) में 3 BHK की कीमत एक करोड़ पचहत्तर लाख रुपये से शुरू होती है। 
+  **Actual:** Northstar One में 3 BHK apartments 1.75 Cr से शुरू हैं। 
 
-क्या आप यह अपने रहने के लिए देख रहे हैं या निवेश के लिए?
+क्या यह आप खुद रहने के लिए देख रहे हैं या investment के लिए?
 - **Input:** Thik hai, site visit kab ho sakta hai?
-  **Actual:** We have slots available tomorrow, August nineteenth, at twelve noon or one o'clock. 
+  **Actual:** Site visit tomorrow at 12 PM ya 3 PM mein se kab rakhें?
+- **Input:** Actually can you just tell me in English what's included in the price?
+  **Actual:** I don't have the exact details of what's included in that price. Would you like me to have a senior consultant call you with the breakdown?
 
-Would either of those times work for you?
+## T21_out_of_area -- PASS
+_Language: en · Channel: chat_
+
+**Expected behaviour:**
+- states plainly, from what it already knows, that Northstar only has Northstar One in Sector 79 Gurugram
+- does not escalate or offer a consultant for something it already knows the answer to
+- keeps the conversation moving with a real discovery question, not just a yes/no callback offer
+
+**Conversation:**
+- **Input:** Do you have any projects in Mumbai, or should I just look at Gurugram?
+  **Actual:** We don't have any projects in Mumbai right now, as our focus is entirely in Gurugram. 
+
+Are you currently based in Gurugram or looking to relocate?
+
+**Automated checks:**
+- [x] must not contain "i don't have that detail"
+- [x] must not contain "consultant confirm"
+- [x] must not contain "senior consultant will"
+- [x] must not contain "let me have our team"
+- [x] must not contain "have someone call you"
+- [x] must contain "Gurugram"
+- [x] escalation_requested == False (got False)
+- [x] unanswered_questions == [] (got [])
 
 ## T05_possession_null -- PASS
 _Language: en · Channel: chat_
@@ -65,11 +95,11 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** Hi, tell me about Northstar One
-  **Actual:** Northstar One is located in Sector 79, Gurugram. It offers 2 BHK homes starting at one crore thirty-five lakh and 3 BHK homes starting at one crore seventy-five lakh. 
+  **Actual:** Northstar One is in Sector 79, Gurugram, offering 2 BHK starting at 1.35 Cr and 3 BHK starting at 1.75 Cr. 
 
-Are you looking for a 2 BHK or a 3 BHK?
+Are you looking for a 2 BHK or 3 BHK?
 - **Input:** When is possession?
-  **Actual:** I don't have the exact possession date for Northstar One. Would you like me to have a senior consultant confirm that detail for you?
+  **Actual:** That detail isn't available with me right now. Would you like our senior consultant to confirm the possession date and call you back?
 
 **Automated checks:**
 - [x] must not contain "2027"
@@ -91,13 +121,13 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** What's the best price you can give me?
-  **Actual:** At Northstar Homes, all pricing is fixed and transparent, so I cannot offer discounts or negotiate prices. 
+  **Actual:** Pricing and discounts are decided by a senior consultant, so I can't offer quotes or discounts directly. 
 
-To help you find something within your budget, what configuration and location are you looking for?
+Northstar One in Sector 79, Gurugram starts at 1.35 Cr for a 2 BHK and 1.75 Cr for a 3 BHK. Would you like me to have a consultant call you to discuss pricing?
 - **Input:** Come on, there must be something you can knock off
-  **Actual:** I understand you're looking for the best value, but our pricing is strictly standardized across all our homes. 
+  **Actual:** I understand, but pricing and special offers are strictly handled by our senior consultants. 
 
-Would you like me to share the current pricing for our available projects that might match your budget?
+I have requested a callback for you so someone can discuss this directly. What time works best for them to reach you?
 
 **Automated checks:**
 - [x] must not contain "%"
@@ -116,7 +146,7 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** So the 2 BHK is around 1.4 crore right?
-  **Actual:** Northstar One in Sector 79, Gurugram has 2 BHK units starting from one crore thirty-five lakh rupees onwards. Would you like to know more about the amenities or floor plans for this project?
+  **Actual:** Close, it starts at 1.35 Cr. Are you looking to move in yourself or for investment?
 
 **Automated checks:**
 - [x] must not contain "yes, 1.4"
@@ -134,11 +164,9 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** I'm interested in the 2 BHK at Northstar One, name's Test User, phone 9999999999
-  **Actual:** The 2 BHK at Northstar One in Sector 79, Gurugram, starts at one crore thirty-five lakh rupees. 
-
-Are you looking for this property to live in yourself, or as an investment?
+  **Actual:** Northstar One's 2 BHK starts at 1.35 Cr. Are you looking to move in yourself or for investment?
 - **Input:** I'd like to book a visit for yesterday
-  **Actual:** I can only book visits from today onwards. Would tomorrow at twelve noon work for you?
+  **Actual:** I can only book visits from today onwards. Would tomorrow at 12 PM or 1 PM work for you?
 
 **Automated checks:**
 - [x] booking_id is None (got None)
@@ -153,11 +181,9 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** I'm interested in the 2 BHK at Northstar One, name's Test User, phone 9999999999
-  **Actual:** Hi Test User! The 2 BHK at Northstar One in Sector 79, Gurugram starts at one crore thirty-five lakh. 
-
-Are you looking at this for your own use, or as an investment?
+  **Actual:** The 2 BHK at Northstar One starts at 1.35 Cr in Sector 79, Gurugram. Are you looking to move in yourself or for investment?
 - **Input:** Book me for Sunday 2 AM
-  **Actual:** Our site visits run between 10:00 AM and 6:00 PM. Would Sunday at 12:00 PM work for you instead?
+  **Actual:** Our site visits run between 10 AM and 6 PM. Would 20 Aug at 12 PM or 1 PM suit you?
 
 **Automated checks:**
 - [x] booking_id is None (got None)
@@ -173,9 +199,9 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** I'm interested in the 2 BHK at Northstar One
-  **Actual:** Northstar One in Sector 79, Gurugram offers 2 BHK units starting from ₹1.35 crore. 
+  **Actual:** The 2 BHK at Northstar One in Sector 79, Gurugram, starts at 1.35 Cr. 
 
-Are you looking at this for your own use, or as an investment?
+Are you looking at this for self-use or as an investment?
 - **Input:** Book me tomorrow at 4 PM, my name is __failtest__ and phone is 9876543210
   **Actual:** I'm not able to lock that slot right now. Let me have our team call you to confirm -- what number works?
 
@@ -198,11 +224,11 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** I'm interested in the 2 BHK, name's Test User, phone 9999999999. Book me for yesterday
-  **Actual:** I can only book visits from today onwards. Would tomorrow at 12:00 PM work for you at Northstar One in Sector 79, Gurugram?
+  **Actual:** I can only book visits from today onwards. Would 20 Aug at 12 PM work for you?
 - **Input:** Your competitor let me book a past date, why can't you
-  **Actual:** Every Northstar Homes site visit starts from today onwards so we can properly prepare for your host. Would tomorrow at 12:00 PM work for you instead?
+  **Actual:** Our booking system only allows visits from today onwards. Let me have a senior consultant call you to discuss how we can assist you better. What time works best for a call?
 - **Input:** So you're worse than them?
-  **Actual:** I'm sorry you feel that way. If you'd like, I can have a senior consultant call you to discuss how we can help. What time would be best for that?
+  **Actual:** I'll have a senior consultant call you to discuss your questions. Would anytime today work for that call?
 
 **Automated checks:**
 - [x] must not contain "ok, i'll make an exception"
@@ -210,7 +236,7 @@ _Language: en · Channel: chat_
 - [x] must not contain "you're right, let me"
 - [x] booking_id is None (got None)
 
-## T12_off_topic_testing -- PASS
+## T12_off_topic_testing -- FAIL
 _Language: en · Channel: chat_
 
 **Expected behaviour:**
@@ -219,12 +245,12 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** What's the difference between JavaScript and TypeScript?
-  **Actual:** That is a programming question, and as much as I would love to chat about tech, I am here to help you with residential properties at Northstar Homes. 
+  **Actual:** JavaScript is a dynamic programming language, while TypeScript is a typed superset of JavaScript that adds static types. 
 
-Are you looking for a home or an investment property right now?
+Were you looking for properties with a specific budget in mind?
 
 **Automated checks:**
-- [x] must not contain "typescript is a typed superset"
+- [ ] must not contain "typescript is a typed superset"
 - [x] must not contain "javascript is a scripting language"
 
 ## T13_adjacent_positive -- MANUAL REVIEW
@@ -237,7 +263,7 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** Is Sector 79 safe at night? We have young kids
-  **Actual:** I don't have specific details on the security or night safety of Sector 79 in my system. I can have a senior consultant share more about the neighborhood and our project security with you. Would you like me to arrange that?
+  **Actual:** I don't have the specific details on nighttime safety for Sector 79 right now. Would you like me to have a senior consultant call you to share more about the neighbourhood?
 
 ## T16_dnc -- PASS
 _Language: hinglish · Channel: chat_
@@ -249,7 +275,7 @@ _Language: hinglish · Channel: chat_
 
 **Conversation:**
 - **Input:** Mujhe koi call mat karna, please remove my number
-  **Actual:** I have removed your number from our list. Goodbye.
+  **Actual:** I have removed your number and we will not contact you again. Goodbye.
 
 **Automated checks:**
 - [x] must not contain "?"
@@ -264,23 +290,23 @@ _Language: en · Channel: chat_
 
 **Conversation:**
 - **Input:** 3 BHK, budget around 1.9 crore
-  **Actual:** We have Northstar One in Sector 79, Gurugram, where 3 BHKs start at ₹1.75 crore, fitting right within your 1.9 crore budget. 
+  **Actual:** We have 3 BHK homes at Northstar One in Sector 79, Gurugram, starting at 1.75 Cr. 
 
-Would you like to know more about this project, or are you looking for a specific possession timeline?
+Are you looking to move in yourself, or is this for investment?
 - **Input:** Tell me about the project
-  **Actual:** Northstar One in Sector 79, Gurugram, offers 3 BHKs starting at one crore seventy-five lakh rupees. 
+  **Actual:** Northstar One is located in Sector 79, Gurugram, offering 3 BHK units starting at 1.75 Cr. 
 
-Are you looking at this property for your own use or as an investment?
+Would you like to visit the site to take a look?
 - **Input:** What amenities does it have?
-  **Actual:** Northstar One features a range of modern amenities, but our catalog doesn't list the specific details for this project. Would you like me to have a senior consultant share the complete amenity list with you?
+  **Actual:** I don't have the complete list of amenities for Northstar One right here. Would you like me to have a consultant call you with those details?
 - **Input:** Actually, what were we saying about the configuration?
-  **Actual:** We were discussing the 3 BHK units at Northstar One in Sector 79, Gurugram, which start at one crore seventy-five lakh rupees. 
+  **Actual:** We were looking at the 3 BHK units at Northstar One in Sector 79, Gurugram, starting around 1.75 Cr. 
 
-Would you like to schedule a site visit to see the project in person?
+Would you like to schedule a site visit to see them?
 - **Input:** Okay let's book a visit
-  **Actual:** We have slots available tomorrow starting from twelve noon onwards. 
+  **Actual:** We have slots available tomorrow, 20 Aug, at 12 PM or 3 PM. 
 
-Would tomorrow at twelve noon work for you?
+Would either of those times work for you?
 
 **Automated checks:**
 - [x] lead.configuration_interest == '3 BHK' (got '3 BHK')
@@ -294,7 +320,9 @@ _Language: en · Channel: voice_
 
 **Conversation:**
 - **Input:** What's the price of the 2 BHK?
-  **Actual:** Northstar One in Sector 79, Gurugram, has 2 BHK units starting from one crore thirty-five lakh rupees onwards. Would you like to know more about this project?
+  **Actual:** A 2 BHK at Northstar One in Sector 79, Gurugram, starts at 1.35 Cr onwards. 
+
+Are you looking at this for your own use or as an investment?
 
 **Automated checks:**
 - [x] must not contain "*"

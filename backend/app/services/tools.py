@@ -14,6 +14,7 @@ import functools
 import json
 import os
 import random
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -31,6 +32,22 @@ with open(os.path.join(_DATA_DIR, "process_kb.json"), "r", encoding="utf-8") as 
     PROCESS_KB = json.load(f)
 
 _PROJECTS_BY_ID = {p["project_id"]: p for p in CATALOG["projects"]}
+
+# Indian mobile numbers: 10 digits, first digit 6-9. Accepts an optional
+# +91/91 country-code prefix and strips spaces/dashes before matching --
+# customers text numbers in all sorts of formats.
+_PHONE_RE = re.compile(r"^[6-9]\d{9}$")
+
+
+def _is_valid_phone(phone: Optional[str]) -> bool:
+    if not phone:
+        return False
+    digits = re.sub(r"\D", "", phone)
+    if digits.startswith("91") and len(digits) == 12:
+        digits = digits[2:]
+    elif digits.startswith("0") and len(digits) == 11:
+        digits = digits[1:]
+    return bool(_PHONE_RE.match(digits))
 
 
 def _network_delay() -> None:
@@ -130,6 +147,12 @@ class ToolBox:
     ) -> dict:
         """List open site-visit slots for a project.
 
+        Returns two views of the same data: `default_offer` is the small set to lead
+        with (don't overwhelm the customer with every open slot up front), and
+        `available_slots` is the complete list for that window. If the customer asks
+        for other times, more options, or "all slots," relay every entry in
+        available_slots exactly as returned -- never drop, merge, or approximate one.
+
         Args:
             project_id: The project's id.
             date: Optional ISO date (YYYY-MM-DD) to check a specific day. Omit to see the
@@ -139,8 +162,10 @@ class ToolBox:
         if project_id not in _PROJECTS_BY_ID:
             return {"error": "not_found", "project_id": project_id}
         available = slots.generate_available_slots(date_filter=date)
+        cap = slots.BOOKING_CONFIG.get("max_slots_offered_at_once", 2)
         return {
             "business_hours": _business_hours_display(),
+            "default_offer": available[:cap],
             "available_slots": available[:20],
         }
 
@@ -157,7 +182,9 @@ class ToolBox:
         showed them from check_slot_availability. Pass requested_datetime_ist (ISO 8601,
         IST) when the customer names a specific date/time you have not already confirmed is
         open -- including one that might turn out to be in the past or outside business
-        hours. The booking can fail; the reason tells you what to say and what to offer next.
+        hours. The booking can fail; the reason tells you what to say and what to offer next
+        -- one such reason is INVALID_PHONE, when the number given isn't a real 10-digit
+        Indian mobile number; ask the customer to repeat it.
 
         Args:
             project_id: The project's id.
@@ -170,9 +197,10 @@ class ToolBox:
 
         session = self.session
         requested_label = slot_id or requested_datetime_ist or "unspecified"
+        cap = slots.BOOKING_CONFIG.get("max_slots_offered_at_once", 2)
 
         def _fail(reason: str) -> dict:
-            suggestions = slots.generate_available_slots()[:2]
+            suggestions = slots.generate_available_slots()[:cap]
             session.booking_attempts.append(
                 {"requested": requested_label, "result": "failed", "reason": reason}
             )
@@ -183,6 +211,9 @@ class ToolBox:
 
         if slots.is_restricted_name(customer_name):
             return _fail("SYSTEM_ERROR")
+
+        if not _is_valid_phone(customer_phone):
+            return _fail("INVALID_PHONE")
 
         target_dt = None
         if slot_id:
@@ -362,7 +393,10 @@ class ToolBox:
         back anything confirmed and said goodbye.
 
         Args:
-            reason: "user_goodbye", "agent_close", "opt_out", or "abandoned".
+            reason: "user_goodbye", "agent_close", "opt_out", or "abandoned". (A fifth
+                value, "user_ended", is set directly by the /session/{id}/end endpoint
+                when the customer hangs up from the UI rather than saying goodbye --
+                this tool is never called with it.)
         """
         _network_delay()
         session = self.session

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, status
 from starlette.concurrency import run_in_threadpool
 
@@ -6,6 +8,7 @@ from app.schemas.chat import (
     ChatTurnResponse,
     SessionCreateRequest,
     SessionCreateResponse,
+    SessionEndResponse,
 )
 from app.services.agent_service import get_agent_reply
 from app.services.analytics_service import generate_analytics
@@ -49,6 +52,28 @@ async def chat_endpoint(request: ChatTurnRequest):
     )
 
 
+@router.post("/session/{session_id}/end", response_model=SessionEndResponse, summary="End a conversation session")
+async def end_session(session_id: str):
+    session = session_store.get(session_id)
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found or expired.",
+        )
+
+    if not session.ended:
+        session.ended = True
+        session.end_reason = "user_ended"
+        session.ended_at = datetime.now(timezone.utc)
+
+    analytics = generate_analytics(session)
+    return SessionEndResponse(
+        session_id=session.session_id,
+        ended=True,
+        analytics=analytics,
+    )
+
+
 @router.get("/session/{session_id}/analytics", summary="Get analytics for a conversation")
 async def get_session_analytics(session_id: str):
     session = session_store.get(session_id)
@@ -58,3 +83,4 @@ async def get_session_analytics(session_id: str):
             detail="Session not found or expired.",
         )
     return generate_analytics(session)
+

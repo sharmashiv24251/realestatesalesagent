@@ -25,9 +25,16 @@ class ChatTurnResponse(BaseModel):
     do_not_contact: bool
 
 
+class SessionEndResponse(BaseModel):
+    session_id: str
+    ended: bool
+    analytics: dict
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
     model: str
     api_key_configured: bool
     service: str = "Northstar Sales Agent API"
+
